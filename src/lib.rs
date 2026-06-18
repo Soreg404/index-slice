@@ -1,3 +1,4 @@
+#[derive(Debug, Default, Copy, Clone, Eq, PartialEq)]
 pub struct IndexSlice {
     from: usize,
     to: usize
