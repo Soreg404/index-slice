@@ -11,6 +11,9 @@ impl IndexSlice {
             to
         }
     }
+    pub fn len(&self) -> usize {
+        self.to - self.from
+    }
     pub fn as_slice_of<'a>(&self, target: &'a [u8]) -> &'a [u8] {
         &target[self.from..self.to]
     }
@@ -27,7 +30,9 @@ impl IndexSlice {
         Self::new(self.from - offset, self.to - offset)
     }
     pub fn window(&self, range: std::ops::Range<usize>) -> Self {
-        Self::new(self.from + range.start, self.to - range.end)
+        assert!(range.start <= self.to);
+        assert!(range.end <= self.to);
+        Self::new(self.from + range.start, self.from + range.end)
     }
 }
 
@@ -47,4 +52,15 @@ mod tests {
         );
     }
 
+    #[test]
+    fn test_window() {
+        let buffer = b"first line\nsecond line\n";
+        let line = IndexSlice::new(0, 11);
+        let strip_nl = line.window(0..line.len() - 1);
+        assert_eq!(str::from_utf8(strip_nl.as_slice_of(buffer)), Ok("first line"));
+        
+        let line = IndexSlice::new(11, buffer.len());
+        let strip_nl = line.window(0..line.len() - 1);
+        assert_eq!(str::from_utf8(strip_nl.as_slice_of(buffer)), Ok("second line"));
+    }
 }
